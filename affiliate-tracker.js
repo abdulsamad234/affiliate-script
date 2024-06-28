@@ -39,16 +39,40 @@
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; samesite=none; secure`;
   }
 
-  loadPslScript(function () {
+  loadPslScript(async function () {
     const domain = removeSubdomain(window.location.hostname);
     const urlParams = new URLSearchParams(window.location.search);
     const affiliateParam = urlParams.get("ref");
     const cookieName = "affiliate_referral";
     const existingAffiliate = getCookie(cookieName) || null;
+    const affiliateProgramId = document
+      .querySelector("script[data-affiliate]")
+      .getAttribute("data-program-id");
+
+    if (!affiliateProgramId) return;
+
+    const affiliateProgramResponse = await fetch(
+      // TODO: change this to your API endpoint
+      "http://localhost:3000/api/affiliates/affiliate-program?programId=" +
+        affiliateProgramId,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    const affiliateProgramData = await affiliateProgramResponse.json();
+    console.log("Affiliate Program Data:", affiliateProgramData);
+
+    if (!affiliateProgramData) return;
+    if (!affiliateProgramData.program) return;
 
     if (affiliateParam) {
       // TODO: check for cookie duration from affiliate program
-      setCookie(cookieName, affiliateParam, 30);
+      setCookie(
+        cookieName,
+        affiliateParam,
+        affiliateProgramData.program.cookieDuration ?? 60
+      );
       window.affiliateId = affiliateParam;
     } else if (existingAffiliate) {
       window.affiliateId = existingAffiliate;
@@ -60,29 +84,35 @@
 
     // Function to handle referrals
     async function handleReferral() {
-      const userId = document
+      console.log("Got into handleReferral()");
+      const programId = document
         .querySelector("script[data-affiliate]")
-        .getAttribute("data-user-id");
+        .getAttribute("data-program-id");
+
+      console.log("Program ID from attribute:", programId);
+
       const referralCode = window.affiliateId;
-      if (!userId || !domain || !referralCode) return;
+      if (!programId || !referralCode) return;
 
       try {
         const response = await fetch(
-          "https://api.yourdomain.com/v1/referrals",
+          // TODO: change this to your API endpoint
+          "http://localhost:3000/api/affiliates/add-click",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id: userId, code: referralCode }),
+            body: JSON.stringify({ programId, referralCode }),
           }
         );
         const data = await response.json();
-        if (data.referral) {
-          setCookie(cookieName, data.referral, data.cookie_duration);
-          window.affiliateId = data.referral;
-        } else {
-          deleteCookie(cookieName);
-          window.affiliateId = null;
-        }
+        console.log("Data from affiliate click:", data);
+        // if (data.referral) {
+        //   setCookie(cookieName, data.referral, data.cookie_duration);
+        //   window.affiliateId = data.referral;
+        // } else {
+        //   deleteCookie(cookieName);
+        //   window.affiliateId = null;
+        // }
         dispatchEvent(new Event("affiliate_referral_ready"));
       } catch (error) {
         deleteCookie(cookieName);
@@ -90,6 +120,10 @@
         console.error("Error handling referral:", error);
       }
     }
+
+    console.log("Existing Affiliate:", existingAffiliate);
+    console.log("Affiliate Param:", affiliateParam);
+    console.log("Domain:", domain);
 
     if (affiliateParam && existingAffiliate !== affiliateParam) {
       handleReferral();

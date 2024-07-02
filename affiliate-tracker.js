@@ -43,11 +43,12 @@
     const domain = removeSubdomain(window.location.hostname);
     const urlParams = new URLSearchParams(window.location.search);
     const affiliateParam = urlParams.get("ref");
-    const cookieName = "affiliate_referral";
-    const existingAffiliate = getCookie(cookieName) || null;
+
     const affiliateProgramId = document
       .querySelector("script[data-affiliate]")
       .getAttribute("data-program-id");
+    const cookieName = `${affiliateProgramId}_affiliate_referral`;
+    const existingAffiliate = getCookie(cookieName) || null;
 
     if (!affiliateProgramId) return;
 
@@ -61,7 +62,7 @@
       }
     );
     const affiliateProgramData = await affiliateProgramResponse.json();
-    console.log("Affiliate Program Data:", affiliateProgramData);
+    // console.log("Affiliate Program Data:", affiliateProgramData);
 
     if (!affiliateProgramData) return;
     if (!affiliateProgramData.program) return;
@@ -80,16 +81,16 @@
       window.affiliateId = null;
     }
 
-    console.log("Affiliate ID:", window.affiliateId);
+    // console.log("Affiliate ID:", window.affiliateId);
 
     // Function to handle referrals
     async function handleReferral() {
-      console.log("Got into handleReferral()");
+      // console.log("Got into handleReferral()");
       const programId = document
         .querySelector("script[data-affiliate]")
         .getAttribute("data-program-id");
 
-      console.log("Program ID from attribute:", programId);
+      // console.log("Program ID from attribute:", programId);
 
       const referralCode = window.affiliateId;
       if (!programId || !referralCode) return;
@@ -105,7 +106,7 @@
           }
         );
         const data = await response.json();
-        console.log("Data from affiliate click:", data);
+        // console.log("Data from affiliate click:", data);
         // if (data.referral) {
         //   setCookie(cookieName, data.referral, data.cookie_duration);
         //   window.affiliateId = data.referral;
@@ -121,9 +122,9 @@
       }
     }
 
-    console.log("Existing Affiliate:", existingAffiliate);
-    console.log("Affiliate Param:", affiliateParam);
-    console.log("Domain:", domain);
+    // console.log("Existing Affiliate:", existingAffiliate);
+    // console.log("Affiliate Param:", affiliateParam);
+    // console.log("Domain:", domain);
 
     if (affiliateParam && existingAffiliate !== affiliateParam) {
       handleReferral();

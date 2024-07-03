@@ -54,7 +54,7 @@
 
     const affiliateProgramResponse = await fetch(
       // TODO: change this to your API endpoint
-      "http://localhost:3000/api/affiliates/affiliate-program?programId=" +
+      "http://pushlapgrowth.com/api/affiliates/affiliate-program?programId=" +
         affiliateProgramId,
       {
         method: "GET",
@@ -98,7 +98,7 @@
       try {
         const response = await fetch(
           // TODO: change this to your API endpoint
-          "http://localhost:3000/api/affiliates/add-click",
+          "http://pushlapgrowth.com/api/affiliates/add-click",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
